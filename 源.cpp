@@ -33,8 +33,8 @@ char str1[10] = "";
 //地图1
 int map[10][13][13];
 IMAGE Wall, Ground, Green_Slime, Red_Slime, Blue_Cry, Red_Cry, Blue_Key, Yellow_Key,
-Red_Med, Blue_Med, upLadder,downLadder, Small_Skull, Big_Skull, Small_Bat, Small_Wizard,
-Blue_door, Yellow_door, Player, Message, Item, a,champion;
+Red_Med, Blue_Med, upLadder, downLadder, Small_Skull, Big_Skull, Small_Bat, Small_Wizard,
+Blue_door, Yellow_door, Player, Message, Item, a, champion;
 HWND hwnd;
 struct gamerole
 {
@@ -56,10 +56,10 @@ struct monster    //怪物属性
 	int DEF;	//防御
 	int Exp;    //经验
 };
-struct monster Green_Slime_Pro = { 50,10,12,100 };    //绿史莱姆属性     
+struct monster Green_Slime_Pro = { 50,16,12,100 };    //绿史莱姆属性     
 struct monster Red_Slime_Pro = { 60, 60, 12, 500 };  //红史莱姆属性
-struct monster Small_Wizard_Pro = { 100, 30, 9, 400 };//小巫师属性
-struct monster Small_Bat_Pro = { 20, 10, 9, 50 };         //小蝙蝠属性
+struct monster Small_Wizard_Pro = { 100, 30, 12, 400 };//小巫师属性
+struct monster Small_Bat_Pro = { 20, 18, 15, 50 };         //小蝙蝠属性
 struct monster Small_Skull_Pro = { 30, 20, 10, 200 };   //小骷髅属性
 struct monster Big_Skull_Pro = { 60, 50, 25, 300 };     //大骷髅属性
 
@@ -85,7 +85,7 @@ int main()
 void NewGame()
 {
 	initPlayer(); //初始化游戏角色信息
-	FILE* fp; 
+	FILE* fp;
 	fp = fopen("map.txt", "r");//读取保存在map.txt中的地图
 	for (int k = 0; k < 10; k++)
 		for (int i = 0; i < 13; i++)
@@ -165,11 +165,11 @@ void SetItem()
 		switch (ch) {
 		case 'N':                //新的游戏
 		case 'n':NewGame(); return;
-			
+
 
 		case 'J':					//继续游戏
 		case 'j':KeepGame(); return;
-			
+
 
 		case 'C':               //游戏说明
 		case 'c': Messages();
@@ -332,7 +332,7 @@ void SetPlayer()
 
 void Music()
 {
-	PlaySound(TEXT("反方向的钟.wav"), 0, SND_FILENAME | SND_ASYNC | SND_LOOP);
+	PlaySound(TEXT("2.wav"), 0, SND_FILENAME | SND_ASYNC | SND_LOOP);
 }
 /*
 *   加载游戏图片
@@ -365,7 +365,7 @@ void initgamePicture()
 	loadimage(&Yellow_door, "黄门.jpg", 60, 60);
 	loadimage(&Player, "人.jpg", 60, 60);
 	loadimage(&Message, "info.jpg");
-	loadimage(&a, "游戏说明.jpg", 840, 780);
+	loadimage(&a, "游戏说明.png", 840, 780);
 	//loadimage(&a, "魔塔.jpeg", 840, 780);
 	loadimage(&Item, "菜单.jpg", 840, 780);
 }
@@ -376,11 +376,11 @@ void initgamePicture()
 void initPlayer()
 {
 	player.Lv = 0;
-	player.ATT = 13;
-	player.DEF = 8;
+	player.ATT = 15;
+	player.DEF = 10;
 	player.Num_Blue_Key = 0;
 	player.Num_Yellow_Key = 0;
-	player.HP = 500;
+	player.HP = 800;
 	player.MP = 250;
 	player.Exp = 0;
 	playery = 11;
@@ -607,9 +607,9 @@ void CaLv()
 	if (player.Exp >= player.Lv * 1000) {
 		player.Exp -= player.Lv * 1000;
 		player.Lv++;
-		player.ATT += 3;
-		player.DEF += 5;
-		player.HP += 100;
+		player.ATT += 1;
+		player.DEF += 1;
+		player.HP += 500;
 	}
 
 }
@@ -637,7 +637,11 @@ int VS(int playHP, int playATT, int playDEF, int monHP, int monATT, int monDEF)
 			return 1;
 		}
 		else {
-			count = monHP / (playATT - monDEF);     //当次数刚好为整数时loss = （count-1） * (monATT - playDEF)
+            monHP -= (playATT - monDEF);
+			while (monHP > 0) {
+				monHP -= (playATT - monDEF);
+				count++;
+			}
 			loss = count * (monATT - playDEF);
 			if (loss >= player.HP) {
 				MessageBox(NULL, "", "打不过", MB_YESNO);
@@ -669,6 +673,10 @@ void playGame()
 				SaveGame();
 				SetItem();
 			}
+			break;
+		case 'r':
+		case 'R':
+			ID = MessageBox(NULL, "怪物名字  生命  攻击  防御  生命\n绿史莱姆  50  16  12 100\n红史莱姆  60  60  12  500\n小巫师  100  30  12  400\n小蝙蝠  20  18  15  50\n小骷髅  30  20  10  200\n大骷髅  60  50  25  300\n ", "怪物手册", MB_YESNO);
 			break;
 		case 'w':
 		case 'W':
@@ -756,7 +764,7 @@ void playGame()
 				playerh++;
 				Change(playerh, 1);
 			}
-			
+
 			//下一步是向下的楼梯
 			else if (map[playerh][playery - 1][playerx] == 97) {
 				map[playerh][playery][playerx] = 1;
@@ -926,13 +934,13 @@ void playGame()
 				playerx--;
 			}
 			//下一步是奖杯
-			else if (map[playerh][playery ][playerx - 1] == 100) {
+			else if (map[playerh][playery][playerx - 1] == 100) {
 				ID = MessageBox(NULL, "是否退出游戏", "you win ！！", MB_YESNO);
 				if (ID == IDYES)
 				{
 					exit(0);
 				}
-				map[playerh][playery ][playerx - 1 ] = 99;
+				map[playerh][playery][playerx - 1] = 99;
 				map[playerh][playery][playerx] = 1;
 				playerx--;
 			}
@@ -1007,20 +1015,20 @@ void playGame()
 				}
 			}
 			//红蓝水晶
-			//红水晶+2攻击
-			//蓝水晶+2防御
+			//红水晶+1攻击
+			//蓝水晶+1防御
 			else if (map[playerh][playery][playerx + 1] == 4 || map[playerh][playery][playerx + 1] == 5) {
 				if (map[playerh][playery][playerx + 1] == 4)
-					player.DEF += 2;
+					player.DEF += 1;
 				else if (map[playerh][playery][playerx + 1] == 5)
-					player.ATT += 2;
+					player.ATT += 1;
 				map[playerh][playery][playerx + 1] = 99;
 				map[playerh][playery][playerx] = 1;
 				playerx++;
 			}
 			//下一步是奖杯
 			else if (map[playerh][playery][playerx + 1] == 100) {
-				ID = MessageBox(NULL, "是否退出游戏", "you win ！！", MB_YESNO);
+				ID = MessageBox(NULL, "you win ！！\n        you are genius!!!\n     oh!it is you\n   why are you so smart??\n  oh,my ga!,", "是否退出游戏", MB_YESNO);
 				if (ID == IDYES)
 				{
 					exit(0);
